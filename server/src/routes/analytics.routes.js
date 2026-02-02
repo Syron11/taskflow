@@ -11,7 +11,7 @@ const isMember = (ws, userId) =>
 
 /**
  * GET /api/analytics/workspace/:id/summary
- * Multi-stage aggregation pipeline ✅
+ * Multi-stage aggregation pipeline 
  */
 router.get("/workspace/:id/summary", auth, async (req, res) => {
   try {
