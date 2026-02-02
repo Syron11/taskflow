@@ -6,12 +6,12 @@ const taskSchema = new mongoose.Schema(
     projectId: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true, index: true },
     workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: "Workspace", required: true, index: true },
 
-    listId: { type: mongoose.Schema.Types.ObjectId, required: true }, // колонка внутри board.lists
+    listId: { type: mongoose.Schema.Types.ObjectId, required: true }, 
 
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "", trim: true },
 
-    status: { type: String, enum: ["todo", "doing", "done"], default: "todo" }, // можно синхронизировать по listId
+    status: { type: String, enum: ["todo", "doing", "done"], default: "todo" }, 
     priority: { type: String, enum: ["low", "medium", "high"], default: "medium" },
 
     assignedTo: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -20,13 +20,13 @@ const taskSchema = new mongoose.Schema(
     dueDate: { type: Date },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 
-    order: { type: Number, default: 1 }, // позиция внутри колонки
+    order: { type: Number, default: 1 }, 
     completedAt: { type: Date },
   },
   { timestamps: true }
 );
 
-// ✅ Compound indexes for speed (важно для отчёта)
+//  Compound indexes for speed
 taskSchema.index({ boardId: 1, listId: 1, order: 1 });
 taskSchema.index({ workspaceId: 1, status: 1, dueDate: 1 });
 taskSchema.index({ assignedTo: 1, status: 1 });
