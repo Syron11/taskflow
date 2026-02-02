@@ -118,7 +118,6 @@ router.patch("/:id", auth, async (req, res) => {
 /**
  * DELETE /api/projects/:id
  * owner-only delete
- * (дальше добавим каскад: удалять boards/tasks этого проекта)
  */
 router.delete("/:id", auth, async (req, res) => {
   try {

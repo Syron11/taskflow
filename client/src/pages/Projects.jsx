@@ -297,16 +297,7 @@ export default function Projects() {
           )}
         </div>
 
-        {/* Tip */}
-        <div className="mt-6 rounded-2xl border bg-white p-4 text-sm text-slate-600 shadow-sm">
-          <p className="font-medium text-slate-900">Tip</p>
-          <p className="mt-1">
-            Лучше передавать <span className="font-mono">workspaceId</span>{" "}
-            через URL (например:{" "}
-            <span className="font-mono">/projects/:workspaceId</span>), но для
-            демо можно и так.
-          </p>
-        </div>
+        
       </div>
     </div>
   );

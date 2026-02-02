@@ -16,6 +16,11 @@ export default function Workspaces() {
   const [error, setError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
+  const [showJoin, setShowJoin] = React.useState(false);
+  const [joinId, setJoinId] = React.useState("");
+  const [joinMsg, setJoinMsg] = React.useState("");
+  const [joining, setJoining] = React.useState(false);
+
 
   const load = async () => {
     setError("");
@@ -51,6 +56,26 @@ export default function Workspaces() {
     }
   };
 
+  const joinWorkspace = async () => {
+    const id = joinId.trim();
+    if (!id) return;
+
+    setError("");
+    setJoining(true);
+    try {
+      await api.post(`/workspaces/${id}/join-requests`, { message: joinMsg });
+      setShowJoin(false);
+      setJoinId("");
+      setJoinMsg("");
+      await load();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Join request failed");
+    } finally {
+      setJoining(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
@@ -59,7 +84,8 @@ export default function Workspaces() {
             Workspaces
           </h1>
           <p className="text-sm text-slate-600">
-            Create a workspace to organize projects and collaborate with your team.
+            Create a workspace to organize projects and collaborate with your
+            team.
           </p>
         </div>
 
@@ -98,6 +124,13 @@ export default function Workspaces() {
                 className="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Refreshing..." : "Refresh"}
+              </button>
+
+              <button
+                onClick={() => setShowJoin(true)}
+                className="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Join workspace
               </button>
             </div>
           </div>
@@ -160,10 +193,67 @@ export default function Workspaces() {
           )}
         </div>
 
+        {showJoin && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-md rounded-2xl border bg-white p-5 shadow-lg">
+              <div className="mb-3">
+                <h3 className="text-base font-semibold text-slate-900">
+                  Join workspace
+                </h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  Paste a workspace ID to send a join request.
+                </p>
+              </div>
+
+              <label className="mb-1 block text-xs font-medium text-slate-600">
+                Workspace ID
+              </label>
+              <input
+                value={joinId}
+                onChange={(e) => setJoinId(e.target.value)}
+                placeholder="e.g. 698077fac205417dbfeea605"
+                className="w-full rounded-xl border bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") joinWorkspace();
+                }}
+              />
+
+              <label className="mb-1 mt-3 block text-xs font-medium text-slate-600">
+                Message (optional)
+              </label>
+              <textarea
+                value={joinMsg}
+                onChange={(e) => setJoinMsg(e.target.value)}
+                placeholder="Hi, I want to join this workspace."
+                className="w-full rounded-xl border bg-slate-50 px-3 py-2 text-sm outline-none placeholder:text-slate-400"
+                rows={3}
+              />
+
+              <div className="mt-4 flex justify-end gap-2">
+                <button
+                  onClick={() => setShowJoin(false)}
+                  className="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={joinWorkspace}
+                  disabled={joining || !joinId.trim()}
+                  className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {joining ? "Sending..." : "Send request"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 rounded-2xl border bg-white p-4 text-sm text-slate-600 shadow-sm">
           <p className="font-medium text-slate-900">Tip</p>
           <p className="mt-1">
-            If you want to join as another account, copy the workspace ID and open:
+            If you want to join as another account, copy the workspace ID and
+            open:
             <span className="ml-2 rounded-lg bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700">
               /workspace/:id
             </span>

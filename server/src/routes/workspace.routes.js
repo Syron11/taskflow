@@ -5,13 +5,17 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// helper: check owner role
-const isOwner = (ws, userId) =>
-  ws.members?.some((m) => String(m.userId) === String(userId) && m.role === "owner");
 
-// helper: check membership
+
+const isOwner = (ws, userId) =>
+  String(ws.ownerId) === String(userId) ||
+  ws.members?.some(
+    (m) => String(m.userId) === String(userId) && m.role === "owner",
+  );
+
 const isMember = (ws, userId) =>
   ws.members?.some((m) => String(m.userId) === String(userId));
+
 
 /**
  * POST /api/workspaces

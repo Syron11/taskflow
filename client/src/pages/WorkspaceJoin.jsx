@@ -36,6 +36,9 @@ export default function WorkspaceJoin() {
   const [loading, setLoading] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
   const [joining, setJoining] = React.useState(false);
+  const [joinRequests, setJoinRequests] = React.useState([]);
+  const [jrLoading, setJrLoading] = React.useState(false);
+
 
   const loadProjects = async () => {
     setError("");
@@ -105,25 +108,62 @@ export default function WorkspaceJoin() {
     setInfo("");
     setJoining(true);
     try {
-      await api.post(`/workspaces/${workspaceId}/join`);
-      setInfo("Joined workspace successfully.");
-      await loadProjects();
-    } catch (e1) {
-      try {
-        await api.post(`/workspaces/join`, { workspaceId });
-        setInfo("Joined workspace successfully.");
-        await loadProjects();
-      } catch (e2) {
-        setError(
-          e2?.response?.data?.message ||
-            e1?.response?.data?.message ||
-            "Join failed",
-        );
-      }
+      await api.post(`/workspaces/${workspaceId}/join-requests`, {
+        message: "",
+      });
+      setInfo("Join request sent. Waiting for owner approval.");
+    } catch (err) {
+      setError(err?.response?.data?.message || "Join request failed");
     } finally {
       setJoining(false);
     }
   };
+
+  const loadJoinRequests = async () => {
+    setError("");
+    setInfo("");
+    setJrLoading(true);
+    try {
+      const { data } = await api.get(
+        `/workspaces/${workspaceId}/join-requests?status=pending`,
+      );
+      setJoinRequests(data.joinRequests || []);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Failed to load join requests");
+    } finally {
+      setJrLoading(false);
+    }
+  };
+
+  const approveRequest = async (requestId) => {
+    setError("");
+    setInfo("");
+    try {
+      await api.patch(
+        `/workspaces/${workspaceId}/join-requests/${requestId}/approve`,
+      );
+      setInfo("Request approved.");
+      await loadJoinRequests();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Approve failed");
+    }
+  };
+
+  const rejectRequest = async (requestId) => {
+    setError("");
+    setInfo("");
+    try {
+      await api.patch(
+        `/workspaces/${workspaceId}/join-requests/${requestId}/reject`,
+      );
+      setInfo("Request rejected.");
+      await loadJoinRequests();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Reject failed");
+    }
+  };
+
+
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -146,6 +186,14 @@ export default function WorkspaceJoin() {
                 className="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
               >
                 {loading ? "Refreshing..." : "Refresh"}
+              </button>
+
+              <button
+                onClick={loadJoinRequests}
+                disabled={jrLoading}
+                className="rounded-xl border bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {jrLoading ? "Loading..." : "Requests"}
               </button>
 
               <button
@@ -175,6 +223,51 @@ export default function WorkspaceJoin() {
           {error && <Alert type="error">{error}</Alert>}
           {info && <Alert type="success">{info}</Alert>}
         </div>
+
+        {joinRequests.length > 0 && (
+          <div className="mb-6 rounded-2xl border bg-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Join requests
+              </h2>
+              <Pill>{joinRequests.length} pending</Pill>
+            </div>
+
+            <div className="space-y-2">
+              {joinRequests.map((r) => (
+                <div
+                  key={r._id}
+                  className="flex items-center justify-between rounded-xl border p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      User:{" "}
+                      <span className="font-mono">{String(r.userId)}</span>
+                    </p>
+                    {r.message ? (
+                      <p className="mt-1 text-xs text-slate-600">{r.message}</p>
+                    ) : null}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => approveRequest(r._id)}
+                      className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-800"
+                    >
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => rejectRequest(r._id)}
+                      className="rounded-xl border bg-white px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="rounded-2xl border bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
