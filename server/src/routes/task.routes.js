@@ -115,7 +115,7 @@ router.get("/", auth, async (req, res) => {
 
 /**
  * PATCH /api/tasks/:id
- * member can update, but delete/strong actions owner-only (мы в delete сделаем)
+ * member can update, but delete/strong actions owner-only
  */
 router.patch("/:id", auth, async (req, res) => {
   try {
@@ -152,7 +152,7 @@ router.patch("/:id", auth, async (req, res) => {
 });
 
 /**
- * PATCH /api/tasks/:id/move  ✅ Advanced update
+ * PATCH /api/tasks/:id/move  Advanced update
  * Move task to another list + set order
  * body: { toListId, toOrder? }
  */
